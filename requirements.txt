@@ -1,0 +1,4 @@
+open_cv
+torch
+PIL
+transformers
