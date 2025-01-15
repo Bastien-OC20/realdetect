@@ -14,7 +14,10 @@
             display: block;
             margin-left: auto;
             margin-right: auto;
-            width: 25%;
+            width: 50%;
+        }
+        .container {
+            text-align: center;
         }
     </style>
     <title>Webcam Streaming</title>
@@ -22,8 +25,44 @@
 
 <body>
 
-    <h1>Webcam Object Detection and Captioning</h1>
-    <img src="{{ url_for('video_feed') }}" alt="Webcam Video">
+    <div class="container">
+        <h1>Webcam Object Detection and Captioning</h1>
+        <img src="{{ url_for('video_feed') }}" alt="Webcam Video">
+        <p id="caption">{{ caption }}</p>
+        <ul id="labels">
+            {% for label in labels %}
+                <li>{{ label }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        function fetchCaption() {
+            fetch('/caption')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('caption').innerText = data.caption;
+                });
+        }
+
+        function fetchLabels() {
+            fetch('/labels')
+                .then(response => response.json())
+                .then(data => {
+                    const labelsList = document.getElementById('labels');
+                    labelsList.innerHTML = '';
+                    data.labels.forEach(label => {
+                        const li = document.createElement('li');
+                        li.innerText = label;
+                        labelsList.appendChild(li);
+                    });
+                });
+        }
+
+        setInterval(fetchCaption, 1000);
+        setInterval(fetchLabels, 1000);
+    </script>
+
 </body>
 
 </html>
