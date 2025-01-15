@@ -3,7 +3,6 @@ import torch
 import cv2
 
 def process_frame(frame, obj_processor, obj_model, device, confidence_threshold=0.9):
-    
     """Traite une image pour la détection d'objets."""
     image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     inputs = obj_processor(images=image, return_tensors="pt").to(device)
