@@ -1,18 +1,19 @@
 import cv2
 from components.processing import process_frame
-from components.models import initialize_object_detection, initialize_image_captioning
+from components.models import initialize_object_detection, initialize_image_captioning, draw_detections
 from PIL import Image
 
 current_caption = ""
 current_labels = []
 
 def generate_video_stream():
-    """Génère un flux vidéo MJPEG pour Flask."""
+    """Génère un flux vidéo MJPEG."""
     global current_caption, current_labels
     obj_processor, obj_model, device = initialize_object_detection()
     caption_pipeline = initialize_image_captioning()
 
-    cap = cv2.VideoCapture(0)
+    reverse= cv2.flip(image, 1)
+    cap = reverse.VideoCapture(0)
 
     if not cap.isOpened():
         print("Erreur : Impossible d'accéder à la webcam.")
@@ -31,8 +32,11 @@ def generate_video_stream():
         current_caption = caption_pipeline(image)[0]['generated_text']
         current_labels = labels
 
+        # Dessiner les boîtes de détection
+        frame_with_detections = draw_detections(frame, labels)
+
         # Encode l'image en JPEG
-        ret, jpeg = cv2.imencode('.jpg', frame)
+        ret, jpeg = cv2.imencode('.jpg', frame_with_detections)
         if not ret:
             continue
 

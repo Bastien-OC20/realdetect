@@ -1,19 +1,40 @@
+const startWebcamButton = document.getElementById('start-webcam');
+const stopWebcamButton = document.getElementById('stop-webcam');
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const captureButton = document.getElementById('capture');
 const outputImage = document.getElementById('output-image');
 const captionResult = document.getElementById('caption-result');
+let stream;
 
-// Accéder à la webcam
-navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-        video.srcObject = stream;
-    })
-    .catch(err => {
-        console.error("Erreur : Impossible d'accéder à la webcam", err);
-    });
+// Démarrer la webcam lorsque le bouton est cliqué
+startWebcamButton.addEventListener('click', () => {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(mediaStream => {
+            stream = mediaStream;
+            video.srcObject = stream;
+            video.style.display = 'block';
+            captureButton.style.display = 'block';
+            stopWebcamButton.style.display = 'block';
+            startWebcamButton.style.display = 'none';
+        })
+        .catch(err => {
+            console.error("Erreur : Impossible d'accéder à la webcam", err);
+        });
+});
 
-canvas.width = 320; // Réduire la taille pour un traitement plus rapide
+// Arrêter la webcam lorsque le bouton est cliqué
+stopWebcamButton.addEventListener('click', () => {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
+        stopWebcamButton.style.display = 'none';
+        startWebcamButton.style.display = 'block';
+    }
+});
+
+canvas.width = 320; // Optimisation
 canvas.height = 240;
 
 // Capturer l'image
@@ -26,18 +47,13 @@ captureButton.addEventListener('click', () => {
         formData.append('file', blob, 'captured_image.jpg');
 
         // Envoyer l'image au serveur
-        fetch('http://127.0.0.1:8000/process', { // Utiliser l'endpoint correct
+        fetch('http://127.0.0.1:8000/process', {
             method: 'POST',
             body: formData
         })
             .then(response => response.json())
-            .then(data => {
-                // Afficher les objets détectés et l'image annotée
-                displayResults(data);
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-            });
+            .then(data => displayResults(data))
+            .catch(error => console.error('Erreur:', error));
     }, 'image/jpeg');
 });
 

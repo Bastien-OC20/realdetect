@@ -2,15 +2,20 @@ import os
 import cv2
 import numpy as np
 from PIL import Image
-from transformers import DetrImageProcessor, DetrForObjectDetection, VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
+from transformers import DetrImageProcessor, DetrForObjectDetection, VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer, MarianMTModel, MarianTokenizer
 
 # Initialisation des modèles
-object_processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
-object_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+object_processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-101")
+object_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-101")
 
 caption_model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 caption_processor = ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 caption_tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+# Initialisation du modèle de traduction
+translation_model_name = "Helsinki-NLP/opus-mt-en-fr"
+translation_model = MarianMTModel.from_pretrained(translation_model_name)
+translation_tokenizer = MarianTokenizer.from_pretrained(translation_model_name)
 
 # Détection d'objets
 def detect_objects(image):
@@ -31,6 +36,13 @@ def generate_caption(image):
     outputs = caption_model.generate(**inputs)
     caption = caption_tokenizer.decode(outputs[0], skip_special_tokens=True)
     return caption
+
+# Traduction de la description
+def translate_caption(caption, target_language="fr"):
+    inputs = translation_tokenizer(caption, return_tensors="pt", padding=True)
+    translated_outputs = translation_model.generate(**inputs)
+    translated_caption = translation_tokenizer.decode(translated_outputs[0], skip_special_tokens=True)
+    return translated_caption
 
 # Dessiner les boîtes de détection
 def draw_detections(frame, objects):
