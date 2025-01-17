@@ -5,8 +5,8 @@ from PIL import Image
 from transformers import DetrImageProcessor, DetrForObjectDetection, VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer, MarianMTModel, MarianTokenizer
 
 # Initialisation des modèles
-object_processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-101")
-object_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-101")
+object_processor = DetrImageProcessor.from_pretrained("hustvl/yolos-tiny")
+object_model = DetrForObjectDetection.from_pretrained("hustvl/yolos-tiny")
 
 caption_model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 caption_processor = ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")

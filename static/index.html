@@ -16,6 +16,11 @@
                 align-items: center;
 
             }
+            .feed{
+                display: flex;
+                flex-direction: row;
+            }
+
             img {
                 display: block;
                 margin: 20px auto;
@@ -35,14 +40,17 @@
             <h1>Capture d'image avec la webcam</h1>
             <button id="start-webcam" class="btn btn-primary mt-3">Démarrer la webcam</button>
             <button id="stop-webcam" class="btn btn-danger mt-5" style="display:none;">Arrêter la webcam</button>
-            <video id="video" class="m-5" width="640" height="480" autoplay style="display:none;"></video>
+            <div class="feed">
+            <video id="video" class="m-5" width="680" height="480" autoplay style="display:none;"></video>
+            
             <button id="capture" class="btn btn-primary mt-3" style="display:none;">Capturer</button>
-            <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+            <canvas id="canvas" width="680" height="480" style="display:none;"></canvas>
             <div id="results" class="mt-4">
                 <h2>Résultats :</h2>
                 <img id="output-image" src="" alt="Image annotée" style="display:none;">
                 <p margin-bottom="5" id="caption-result"></p>
             </div>
+        </div>
         </div>
         <script src="script.js"></script>
     </body>
