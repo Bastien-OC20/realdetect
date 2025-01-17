@@ -40,3 +40,4 @@ async def labels():
 
 # Lancer l'application avec uvicorn
 # Commande : uvicorn app:app --reload
+
