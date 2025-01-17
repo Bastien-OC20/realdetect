@@ -401,5 +401,13 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+
+# dossier static/ressults
+static/results/*
+
+
+# dossier static/ressults
+static/results/*
+
 #image
 static/results

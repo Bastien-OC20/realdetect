@@ -7,7 +7,7 @@ from datetime import datetime
 import numpy as np
 import cv2
 import os
-from components.models import detect_objects, generate_caption, draw_detections
+from components.models import detect_objects, generate_caption, draw_detections, translate_caption
 
 # Dossier pour sauvegarder les résultats
 SAVE_DIR = "static/results"
@@ -28,6 +28,7 @@ async def process(file: UploadFile):
     # Détection et génération
     objects = detect_objects(image)
     caption = generate_caption(image)
+    translated_caption = translate_caption(caption)
     
     # Sauvegarder les résultats
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -35,9 +36,9 @@ async def process(file: UploadFile):
     frame_with_detections = draw_detections(np.array(image), objects)
     cv2.imwrite(annotated_image_path, frame_with_detections)
     with open(os.path.join(SAVE_DIR, f"{timestamp}_result.txt"), "w") as f:
-        f.write(caption)
+        f.write(translated_caption)
     
-    return {"objects": objects, "caption": caption}
+    return {"objects": objects, "caption": translated_caption}
 
 @app.get("/results/{filename}")
 async def get_result_file(filename: str):
