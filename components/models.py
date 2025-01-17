@@ -1,14 +1,43 @@
-from transformers import DetrForObjectDetection, DetrImageProcessor, pipeline
-import torch
+import os
+import cv2
+import numpy as np
+from PIL import Image
+from transformers import DetrImageProcessor, DetrForObjectDetection, VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
 
-def initialize_object_detection():
-    """Initialise le modèle de détection d'objets."""
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    obj_processor = DetrImageProcessor.from_pretrained('facebook/detr-resnet-101-dc5', use_fast=True, size={'shortest_edge': 600, 'longest_edge': 800})
-    obj_model = DetrForObjectDetection.from_pretrained('facebook/detr-resnet-101-dc5').to(device)
-    return obj_processor, obj_model, device
+# Initialisation des modèles
+object_processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
+object_model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
 
-def initialize_image_captioning():
-    """Initialise le pipeline pour la génération de descriptions d'images."""
-    caption_pipeline = pipeline("image-to-text", model="nlpconnect/vit-gpt2-image-captioning", device=0 if torch.cuda.is_available() else -1)
-    return caption_pipeline
+caption_model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+caption_processor = ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+caption_tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+# Détection d'objets
+def detect_objects(image):
+    inputs = object_processor(images=image, return_tensors="pt")
+    outputs = object_model(**inputs)
+    results = object_processor.post_process_object_detection(
+        outputs, threshold=0.9, target_sizes=[image.size]
+    )[0]
+    objects = [
+        {"label": object_model.config.id2label[label.item()], "box": box.tolist()}
+        for label, box in zip(results["labels"], results["boxes"])
+    ]
+    return objects
+
+# Génération de descriptions
+def generate_caption(image):
+    inputs = caption_processor(images=image, return_tensors="pt")
+    outputs = caption_model.generate(**inputs)
+    caption = caption_tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return caption
+
+# Dessiner les boîtes de détection
+def draw_detections(frame, objects):
+    for obj in objects:
+        label = obj["label"]
+        box = obj["box"]
+        x1, y1, x2, y2 = map(int, box)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    return frame
