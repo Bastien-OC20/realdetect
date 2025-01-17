@@ -1,28 +1,42 @@
-from flask import Flask, render_template, Response, jsonify
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 from components.webcam import generate_video_stream, get_current_caption, get_current_labels
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route('/')
-def index():
+# Configure le répertoire des templates
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
     """Page d'accueil pour afficher la webcam."""
-    return render_template('index.html', caption=get_current_caption(), labels=get_current_labels())
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "caption": get_current_caption(),
+            "labels": get_current_labels(),
+        },
+    )
 
-@app.route('/video_feed')
-def video_feed():
+@app.get("/video_feed")
+async def video_feed():
     """Génère le flux vidéo pour la webcam."""
-    return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(
+        generate_video_stream(),
+        media_type="multipart/x-mixed-replace; boundary=frame",
+    )
 
-@app.route('/caption')
-def caption():
+@app.get("/caption")
+async def caption():
     """Retourne la légende générée pour l'image actuelle."""
-    return jsonify({'caption': get_current_caption()})
+    return JSONResponse(content={"caption": get_current_caption()})
 
-@app.route('/labels')
-def labels():
+@app.get("/labels")
+async def labels():
     """Retourne les étiquettes générées pour l'image actuelle."""
-    return jsonify({'labels': get_current_labels()})
+    return JSONResponse(content={"labels": get_current_labels()})
 
-if __name__ == "__main__":
-    # Démarre le serveur Flask pour diffuser la vidéo en temps réel
-    app.run(host='0.0.0.0', port=5000, debug=True)
+# Lancer l'application avec uvicorn
+# Commande : uvicorn app:app --reload
